@@ -1,6 +1,7 @@
 const express = require('express')
 const app = express();
 const cors = require('cors');
+const jwt = require('jsonwebtoken')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
 require('dotenv').config();
@@ -32,6 +33,16 @@ async function run() {
         const bookingCollection = client.db("carDoctorDB").collection("bookings");
 
 
+        //jwt
+        app.post('/jwt', (req, res) => {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+                expiresIn: '1hr'
+            })
+            res.send({token})
+        })
+      
+
         //services
 
         app.get('/services', async (req, res) => {
@@ -52,10 +63,10 @@ async function run() {
 
         //bookings
 
-        app.get('/bookings', async(req, res) => {
+        app.get('/bookings', async (req, res) => {
             let query = {};
-            if(req.query?.email){
-                query = {email: req.query.email}
+            if (req.query?.email) {
+                query = { email: req.query.email }
             }
             const result = await bookingCollection.find(query).toArray();
             res.send(result)
@@ -69,10 +80,10 @@ async function run() {
         });
 
 
-        app.patch('/bookings/:id', async(req, res) => {
-            const id= req.params.id;
+        app.patch('/bookings/:id', async (req, res) => {
+            const id = req.params.id;
             const updatedBooking = req.body;
-            const filter = {_id: new ObjectId(id)}
+            const filter = { _id: new ObjectId(id) }
             const updatedDoc = {
                 $set: {
                     status: updatedBooking.status
@@ -85,9 +96,9 @@ async function run() {
 
 
 
-        app.delete('/bookings/:id', async(req, res) => {
+        app.delete('/bookings/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {_id: new ObjectId(id)}
+            const query = { _id: new ObjectId(id) }
             const result = await bookingCollection.deleteOne(query);
             res.send(result);
         })
